@@ -1,16 +1,58 @@
 import express from "express";
-// import routes from "./routes";
+import routes from "./routes";
 import Logger from "./utils/Logger";
 
 const app = express();
 const port = process.env.PORT || 8080;
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
+/** Log the request */
+app.use((req, res, next) => {
+  /** Log the req as it arrives */
+  Logger.info(
+    `Incoming - METHOD: [${req.method}] - URL: [${req.url}] - IP: [${req.socket.remoteAddress}]`
+  );
+
+  res.on("finish", () => {
+    /** Log the res when it finishes */
+    Logger.info(
+      `Result - METHOD: [${req.method}] - URL: [${req.url}] - IP: [${req.socket.remoteAddress}] - STATUS: [${res.statusCode}]`
+    );
+  });
+
+  next();
 });
 
-// app.use("/", routes);
+/** Rules of our API */
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
 
-app.listen(port, () => {
-  Logger.info(`Server is running on port ${port}`);
+  if (req.method == "OPTIONS") {
+    res.header("Access-Control-Allow-Methods", "PUT, POST, PATCH, DELETE, GET");
+    return res.status(200).json({});
+  }
+
+  next();
 });
+
+/** Routes */
+app.use("/api", routes);
+
+/** Health check */
+app.get("/ping", (_, res) => res.status(200).send("pong"));
+
+/** Error Handling */
+app.use((_, res) => {
+  const error = new Error("Not found");
+
+  Logger.error(error);
+  res.status(404).json({
+    message: error.message,
+  });
+});
+
+// Start server
+app.listen(port, () => Logger.info(`Server is running on port ${port}`));
