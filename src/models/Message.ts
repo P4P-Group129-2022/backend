@@ -12,6 +12,10 @@ export interface IMessageModel extends IMessage, Document {
 
 const MessageSchema: Schema = new Schema(
     {
+        sender: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Colleague"
+        },
         content: {type: String, required: true},
     }
 );
