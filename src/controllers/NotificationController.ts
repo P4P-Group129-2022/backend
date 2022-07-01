@@ -6,24 +6,32 @@ import Notification from "../models/Notification";
  */
 
 /**
- * Retrieves a notification given their id.
+ * Retrieves a notification given their name.
  * @param req
  * @param res
  * @param next
  */
-const getNotification = async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
+const getNotificationByName = async (req: Request, res: Response, next: NextFunction) => {
+    console.log("hi");
 
-    const notificationFromDB = await Notification.findById(id);
+    const { name } = req.params;
 
-    if (notificationFromDB === null) {
-        res.status(404).send('Notification not found');
-        return;
+    return res.status(200);
+
+    if (name === "test") {
+        res.status(200);
     }
 
-    return res.status(200).json({ notificationFromDB });
+    // const notificationFromDB = await Notification.findById(name);
+    //
+    // if (notificationFromDB === null) {
+    //     res.status(404).send('Notification not found');
+    //     return;
+    // }
+    //
+    // return res.status(200).json({ notificationFromDB });
 };
 
 export default {
-    getNotification,
+    getNotificationByName,
 };
