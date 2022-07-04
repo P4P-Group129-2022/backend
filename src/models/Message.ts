@@ -1,5 +1,5 @@
 import mongoose, {Document, Schema} from 'mongoose';
-import Colleague from "./Colleague";
+import {Colleague} from "../DTOs/ApiTypes";
 
 /**
  * Message model containing the content of the message.
