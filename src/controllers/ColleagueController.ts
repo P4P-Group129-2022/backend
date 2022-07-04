@@ -6,15 +6,15 @@ import Colleague from "../models/Colleague";
  */
 
 /**
- * Retrieves a colleague given their id.
+ * Retrieves a colleague given their name.
  * @param req
  * @param res
  * @param next
  */
-const getColleague = async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
+const getColleagueByName = async (req: Request, res: Response, next: NextFunction) => {
+    const { name } = req.params;
 
-    const colleagueFromDB = await Colleague.findById(id);
+    const colleagueFromDB = await Colleague.find({name});
 
     if (colleagueFromDB === null) {
         res.status(404).send('Colleague not found');
@@ -25,5 +25,5 @@ const getColleague = async (req: Request, res: Response, next: NextFunction) => 
 };
 
 export default {
-    getColleague,
+    getColleagueByName,
 };
