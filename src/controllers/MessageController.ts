@@ -6,15 +6,15 @@ import Message from "../models/Message";
  */
 
 /**
- * Retrieves a message given their id.
+ * Retrieves a message given their nameId.
  * @param req
  * @param res
  * @param next
  */
-const getMessage = async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
+const getMessageByNameId = async (req: Request, res: Response, next: NextFunction) => {
+    const { nameId } = req.params;
 
-    const messageFromDB = await Message.findById(id);
+    const messageFromDB = await Message.find({nameId});
 
     if (messageFromDB === null) {
         res.status(404).send('Message not found');
@@ -25,5 +25,5 @@ const getMessage = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 export default {
-    getMessage,
+    getMessageByNameId,
 };

@@ -6,7 +6,7 @@ import Colleague from "../models/Colleague";
  */
 
 /**
- * Retrieves a colleague given their name.
+ * Retrieves a colleague given their nameId.
  * @param req
  * @param res
  * @param next
