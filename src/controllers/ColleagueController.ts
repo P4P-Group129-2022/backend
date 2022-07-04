@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import {NextFunction, Request, Response} from 'express';
 import Colleague from "../models/Colleague";
 
 /**
@@ -11,19 +11,19 @@ import Colleague from "../models/Colleague";
  * @param res
  * @param next
  */
-const getColleagueByName = async (req: Request, res: Response, next: NextFunction) => {
-    const { name } = req.params;
+const getColleagueByNameId = async (req: Request, res: Response, next: NextFunction) => {
+    const {nameId} = req.params;
 
-    const colleagueFromDB = await Colleague.find({name});
+    const colleagueFromDB = await Colleague.find({nameId});
 
     if (colleagueFromDB === null) {
         res.status(404).send('Colleague not found');
         return;
     }
 
-    return res.status(200).json({ colleagueFromDB });
+    return res.status(200).json({colleagueFromDB});
 };
 
 export default {
-    getColleagueByName,
+    getColleagueByNameId,
 };
