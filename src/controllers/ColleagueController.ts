@@ -14,7 +14,7 @@ import Colleague from "../models/Colleague";
 const getColleagueByNameId = async (req: Request, res: Response, next: NextFunction) => {
     const {nameId} = req.params;
 
-    const colleagueFromDB = await Colleague.find({nameId});
+    const colleagueFromDB = await Colleague.findOne({nameId});
 
     if (colleagueFromDB === null) {
         res.status(404).send('Colleague not found');
