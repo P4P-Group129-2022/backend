@@ -13,7 +13,10 @@ import Scenario from "../models/Scenario";
  */
 const getScenarioByNameId = async (req: Request, res: Response, next: NextFunction) => {
     const { nameId } = req.params;
-    const scenarioFromDB = await Scenario.find({nameId});
+    const scenarioFromDB = await Scenario
+      .findOne({nameId})
+      .populate('segments.chats')
+      .populate('segments.notifications');
 
     if (scenarioFromDB === null) {
         res.status(404).send('Scenario not found');
