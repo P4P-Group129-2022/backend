@@ -4,6 +4,7 @@ import GitActionsRoutes from "./GitActionsRoutes";
 import NotificationRoutes from "./NotificationRoutes";
 import ColleagueRoutes from "./ColleagueRoutes";
 import MessageRoutes from "./MessageRoutes";
+import ScenarioRoutes from "./ScenarioRoutes";
 
 const router = express();
 
@@ -11,5 +12,6 @@ router.use("/git", GitActionsRoutes);
 router.use("/notification", NotificationRoutes);
 router.use("/colleague", ColleagueRoutes);
 router.use("/message", MessageRoutes);
+router.use("/scenario", ScenarioRoutes);
 
 export default router;

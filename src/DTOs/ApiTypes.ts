@@ -6,3 +6,21 @@ export type Colleague = {
     name: string;
     profileImgUrl: string;
 }
+
+export type Message = {
+    nameId: string,
+    sender: Colleague,
+    content: string;
+}
+
+export type Notification = {
+    title: string;
+    message: string;
+    imageSrc: string;
+}
+
+export type ScenarioSegment = {
+    chats: Message[],
+    notifications: Notification[];
+    endRepoId: number;
+}
