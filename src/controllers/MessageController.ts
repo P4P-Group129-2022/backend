@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import {NextFunction, Request, Response} from 'express';
 import Message from "../models/Message";
 
 /**
@@ -12,16 +12,18 @@ import Message from "../models/Message";
  * @param next
  */
 const getMessageByNameId = async (req: Request, res: Response, next: NextFunction) => {
-    const { nameId } = req.params;
+    const {nameId} = req.params;
 
-    const messageFromDB = await Message.find({nameId});
+    const messageFromDB = await Message.findOne({nameId})
+        .populate('sender');
+
 
     if (messageFromDB === null) {
         res.status(404).send('Message not found');
         return;
     }
 
-    return res.status(200).json({ messageFromDB });
+    return res.status(200).json({messageFromDB});
 };
 
 export default {
