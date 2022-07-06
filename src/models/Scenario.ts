@@ -6,9 +6,9 @@ import {ScenarioSegment} from "../DTOs/ApiTypes";
  * Model class for scenario.
  */
 export interface IScenario {
-    // nameId: string;
-    // name: string;
-    // segment: ScenarioSegment[];
+    nameId: string;
+    name: string;
+    segments: ScenarioSegment[];
 }
 
 export interface IScenarioModel extends IScenario, Document {
@@ -23,7 +23,7 @@ const ScenarioSchema: Schema = new Schema(
                 chats: [
                     {
                         type: mongoose.Schema.Types.ObjectId,
-                        ref: "Colleague",
+                        ref: "Message",
                     },
                 ],
                 notifications: [
