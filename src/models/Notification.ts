@@ -4,9 +4,9 @@ import mongoose, {Document, Schema} from 'mongoose';
  * Notification model containing the name and url of the profile img.
  */
 export interface INotification {
-    header: string;
-    body: string;
-    iconImageUrl: string;
+    title: string;
+    message: string;
+    imageSrc: string;
 }
 
 export interface INotificationModel extends INotification, Document {
@@ -14,10 +14,10 @@ export interface INotificationModel extends INotification, Document {
 
 const NotificationSchema: Schema = new Schema(
     {
-        name: {type: String, required: true, unique: true},
-        header: {type: String, required: true},
-        body: {type: String, required: true},
-        iconImageUrl: {type: String, required: true},
+        nameId: {type: String, required: true, unique: true},
+        title: {type: String, required: true},
+        message: {type: String, required: true},
+        imageSrc: {type: String, required: true},
     }
 );
 
