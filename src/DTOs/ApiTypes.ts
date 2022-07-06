@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 /**
  * This file contains the types used by the controllers when sending and receiving data.
  */
@@ -20,7 +22,7 @@ export type Notification = {
 }
 
 export type ScenarioSegment = {
-    chats: Message[],
-    notifications: Notification[];
+    chats: mongoose.Schema.Types.ObjectId[],
+    notifications: mongoose.Schema.Types.ObjectId[];
     endRepoId: number;
 }
