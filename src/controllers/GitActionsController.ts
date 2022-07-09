@@ -39,21 +39,6 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
   res.status(HTTPStatusCode.CREATED).json({ message: "init repo success" });
 }
 
-async function getRepoCommitLogs(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  Logger.info("getRepoCommitLogs run");
-
-  const status = await git.log({
-    fs,
-    dir: getDefaultRepoDir("test1"),
-    ref: "main",
-  });
-  res.json({ log: status });
-}
-
 async function getRepoStatus(req: Request, res: Response, next: NextFunction) {
   Logger.info("getStatus run");
 
@@ -79,11 +64,12 @@ async function stageFile(req: Request, res: Response, next: NextFunction) {
       dir: getDefaultRepoDir(scenarioNameId),
       filepath: fileName,
     });
-  } catch {
+
+    res.status(HTTPStatusCode.NO_CONTENT).json({ message: "stage file success" });
+  } catch (e) {
+    Logger.error(e);
     res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "stage file failed" });
   }
-
-  res.status(HTTPStatusCode.NO_CONTENT).json({ message: "stage file success" });
 }
 
 async function stageAllFiles(req: Request, res: Response, next: NextFunction) {
@@ -97,13 +83,80 @@ async function stageAllFiles(req: Request, res: Response, next: NextFunction) {
       dir: getDefaultRepoDir(scenarioNameId),
       filepath: ".",
     });
-  } catch {
+
+    res.status(HTTPStatusCode.NO_CONTENT).json({ message: "stage all files success" });
+  } catch (e) {
+    Logger.error(e);
     res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "stage all files failed" });
   }
-
-  res.status(HTTPStatusCode.NO_CONTENT).json({ message: "stage all files success" });
 }
 
+async function commit(req: Request, res: Response, next: NextFunction) {
+  Logger.info("commit run");
 
+  const {
+    scenarioNameId,
+    message,
+    author,
+  }: {
+    scenarioNameId: string;
+    message: string;
+    author: {
+      name: string;
+      email: string;
+    }
+  } = req.body;
 
-export default { initRepo, getRepoCommitLogs, getRepoStatus, stageFile, stageAllFiles };
+  try {
+    await git.commit({
+      fs,
+      dir: getDefaultRepoDir(scenarioNameId),
+      message,
+      author,
+    });
+
+    res.status(HTTPStatusCode.NO_CONTENT).json({ message: "commit success" });
+  } catch (e) {
+    Logger.error(e);
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "commit failed" });
+  }
+}
+
+async function stageAllAndCommit(req: Request, res: Response, next: NextFunction) {
+  Logger.info("stageAllAndCommit run");
+
+  const {
+    scenarioNameId,
+    message,
+    author,
+  }: {
+    scenarioNameId: string;
+    message: string;
+    author: {
+      name: string;
+      email: string;
+    }
+  } = req.body;
+
+  try {
+    await git.add({
+      fs,
+      dir: getDefaultRepoDir(scenarioNameId),
+      filepath: ".",
+    });
+
+    await git.commit({
+      fs,
+      dir: getDefaultRepoDir(scenarioNameId),
+      message,
+      author,
+    });
+
+    res.status(HTTPStatusCode.NO_CONTENT).json({ message: "stage and commit success" });
+  } catch (e) {
+    Logger.error(e);
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "stage and commit failed" });
+  }
+}
+
+export default { initRepo, getRepoStatus, stageFile, stageAllFiles, stageAllAndCommit, commit };
