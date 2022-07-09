@@ -8,5 +8,8 @@ router.get("/", (_, res) => {
 });
 router.post("/init", GitActionController.initRepo);
 router.get("/logs", GitActionController.getRepoCommitLogs);
+router.get("/status", GitActionController.getRepoStatus);
+router.post("/stage", GitActionController.stageFile);
+router.post("/stage-all", GitActionController.stageAllFiles);
 
 export default router;

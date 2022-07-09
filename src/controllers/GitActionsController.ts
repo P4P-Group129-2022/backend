@@ -34,19 +34,9 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
       },
     });
   };
-  setupDummyRepoWithCommit();
+  await setupDummyRepoWithCommit();
 
   res.status(HTTPStatusCode.CREATED).json({ message: "init repo success" });
-}
-
-async function stageAllFiles(req: Request, res: Response, next: NextFunction) {
-  Logger.info("stageAllFiles run");
-  await git.add({
-    fs,
-    dir: getDefaultRepoDir("test1"),
-    filepath: ".",
-  });
-  res.status(HTTPStatusCode.NO_CONTENT).json({ message: "stage all files success" });
 }
 
 async function getRepoCommitLogs(
@@ -64,4 +54,56 @@ async function getRepoCommitLogs(
   res.json({ log: status });
 }
 
-export default { initRepo, getRepoCommitLogs };
+async function getRepoStatus(req: Request, res: Response, next: NextFunction) {
+  Logger.info("getStatus run");
+
+  const { scenarioNameId }: { scenarioNameId: string } = req.body;
+
+  // For now, since we know that the only file we have is main.py, we can just check if it is modified or not.
+  const status = await git.status({
+    fs,
+    dir: getDefaultRepoDir(scenarioNameId),
+    filepath: "main.py",
+  });
+  res.json({ status });
+}
+
+async function stageFile(req: Request, res: Response, next: NextFunction) {
+  Logger.info("stageFile run");
+
+  const { scenarioNameId, fileName }: { scenarioNameId: string; fileName: string } = req.body;
+
+  try {
+    await git.add({
+      fs,
+      dir: getDefaultRepoDir(scenarioNameId),
+      filepath: fileName,
+    });
+  } catch {
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "stage file failed" });
+  }
+
+  res.status(HTTPStatusCode.NO_CONTENT).json({ message: "stage file success" });
+}
+
+async function stageAllFiles(req: Request, res: Response, next: NextFunction) {
+  Logger.info("stageAllFiles run");
+
+  const { scenarioNameId }: { scenarioNameId: string } = req.body;
+
+  try {
+    await git.add({
+      fs,
+      dir: getDefaultRepoDir(scenarioNameId),
+      filepath: ".",
+    });
+  } catch {
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "stage all files failed" });
+  }
+
+  res.status(HTTPStatusCode.NO_CONTENT).json({ message: "stage all files success" });
+}
+
+
+
+export default { initRepo, getRepoCommitLogs, getRepoStatus, stageFile, stageAllFiles };
