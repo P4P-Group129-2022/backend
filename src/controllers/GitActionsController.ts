@@ -5,47 +5,9 @@ import git, { CallbackFsClient, PromiseFsClient, TreeEntry } from "isomorphic-gi
 import path from "path";
 import HTTPStatusCode from "../constants/HTTPStatusCode";
 import { structuredPatch, ParsedDiff } from "diff";
-import logger from "../utils/Logger";
 
 function getDefaultRepoDir(folderName: string) {
   return path.join(process.cwd(), "repos", folderName);
-}
-
-async function getDiffBetweenLatestTwoCommits() {
-  // Use git log to get the SHA-1 object ids of the previous two commits
-  const commits = await git.log({ fs, dir: getDefaultRepoDir("test1"), depth: 2 });
-  const oids = commits.map(commit => commit.oid);
-
-  // Make TREE objects for the first and last commits
-  const A = git.TREE({ ref: oids[0] });
-  const B = git.TREE({ ref: oids[oids.length - 1] });
-
-  // Get a list of the files that changed
-  let changes = new Set();
-  await git.walk({
-    fs,
-    dir: getDefaultRepoDir("test1"),
-    trees: [A, B],
-    map: async (filename, [A, B]) => {
-      if (A === null || B === null) return;
-      if (await A.type() === "tree") return;
-
-      let Aoid = await A.oid();
-      let Boid = await B.oid();
-
-      // Skip pairs where the oids are the same
-      if (Aoid === Boid) return;
-
-      changes.add({
-        fullpath: filename,
-        A: Aoid,
-        B: Boid,
-        Achange: A.stat
-      });
-    }
-  });
-
-  console.log("changes", changes);
 }
 
 async function initRepo(req: Request, res: Response, next: NextFunction) {
@@ -82,8 +44,6 @@ async function getRepoStatus(req: Request, res: Response, next: NextFunction) {
   Logger.info("getStatus run");
 
   const { scenarioNameId }: { scenarioNameId: string } = req.body;
-
-  // await getDiffBetweenLatestTwoCommits();
 
   // For now, since we know that the only file we have is main.py, we can just check if it is modified or not.
   const status = await git.status({
@@ -132,7 +92,11 @@ async function stageAllFiles(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-/* ============ Following lines are copied & modified from jcubic/git/main.js ============ */
+/* ==================================== */
+// Following three functions (traverseCommit(), gitCommitDiff(), and commitStat()) are extracted from
+// jcubic/git/js/main.js, and I've made a couple of optimisations for better compatibility with ES6 and TypeScript.
+// Link to their repo: https://github.com/jcubic/git
+
 async function traverseCommit({
   fs,
   dir,
@@ -149,19 +113,19 @@ async function traverseCommit({
 
   return await (async function readFiles(oid: string, path: string[]) {
     const { tree: entries } = await git.readTree({ ...repo, oid });
-    let i = 0;
-    return (async function loop(): Promise<any> {
-      const entry = entries[i++];
+
+    for (const entry of entries) {
       if (entry) {
-        if (entry.type == "blob") {
+        if (entry.type === "blob") {
           const filepath = path.concat(entry.path).join("/");
           await callback({ entry, filepath, oid: entry.oid });
-        } else if (entry.type == "tree" && entry.path !== ".git") {
+        } else if (entry.type === "tree" && entry.path !== ".git") {
           await readFiles(entry.oid, path.concat(entry.path));
         }
-        return loop();
       }
-    })();
+    }
+
+    return;
   })(tree, []);
 }
 
@@ -189,9 +153,9 @@ async function gitCommitDiff({
   function reader(name: "oldFile" | "newFile") {
     return async ({ filepath, oid }: { filepath: string, oid: string }) => {
       try {
-        const { blob: pkg } = await git.readBlob({ fs, dir, oid });
+        const { blob } = await git.readBlob({ fs, dir, oid });
         result[filepath] = result[filepath] || {};
-        result[filepath][name] = Buffer.from(pkg).toString("utf8");
+        result[filepath][name] = Buffer.from(blob).toString("utf8");
       } catch (e) {
         // ignore missing file/object
       }
@@ -216,35 +180,51 @@ async function gitCommitDiff({
       result[key].diff = diff;
     }
   });
+
   return result;
 }
 
-function diffStat(diffs: ParsedDiff[]) {
+function diffStats(diffs: ParsedDiff[]) {
   const modifications = diffs.reduce((acc: { minus: number; plus: number; }, { hunks }: ParsedDiff) => {
-    hunks.forEach(hunk => {
-      hunk.lines.forEach((line) => {
-        if (line[0] === "-") {
+    for (const { lines } of hunks) {
+      for (const [type] of lines) {
+        if (type === "-") {
           acc.minus++;
-        } else if (line[0] === "+") {
+        } else if (type === "+") {
           acc.plus++;
         }
-      });
-    });
+      }
+    }
+
     return acc;
   }, { plus: 0, minus: 0 });
 
-  const plural = (n: number) => n == 1 ? "" : "s";
-  const stat = [" " + diffs.length + " file" + plural(diffs.length)];
-  if (modifications.plus) {
-    stat.push(`${modifications.plus} insertion${plural(modifications.plus)}(+)`);
-  }
-  if (modifications.minus) {
-    stat.push(`${modifications.minus} deletions${plural(modifications.minus)}(-)`);
-  }
-  return stat.join(", ");
+  return { file: diffs.length, ...modifications };
 }
 
 /* ================================================================================================ */
+
+async function commitAndRetrieveStats(
+  dir: string,
+  message: string,
+  author: { name: string; email: string },
+): Promise<{
+  commitId: string,
+  stats: { file: number; minus: number; plus: number }
+}> {
+  const head = await git.resolveRef({ fs, dir, ref: "HEAD" });
+  const commitId = await git.commit({
+    fs,
+    dir,
+    message,
+    author,
+  });
+
+  const diffs = await gitCommitDiff({ fs, dir, newSha: commitId, oldSha: head });
+  const stats = diffStats(Object.values(diffs).map(value => value.diff));
+
+  return { commitId, stats };
+}
 
 async function commit(req: Request, res: Response, next: NextFunction) {
   Logger.info("commit run");
@@ -263,24 +243,9 @@ async function commit(req: Request, res: Response, next: NextFunction) {
   } = req.body;
 
   try {
-
     const dir = getDefaultRepoDir(scenarioNameId);
-
-    const head = await git.resolveRef({ fs, dir, ref: "HEAD" });
-    const commitId = await git.commit({
-      fs,
-      dir,
-      message,
-      author,
-    });
-
-    // ============================================================ //
-    const diffs = await gitCommitDiff({ fs, dir, newSha: commitId, oldSha: head });
-    const stat = diffStat(Object.values(diffs).map(value => value.diff));
-    console.log("stat:", stat);
-    // ============================================================ //
-
-    res.status(HTTPStatusCode.CREATED).json({ commitId });
+    const result = await commitAndRetrieveStats(dir, message, author);
+    res.status(HTTPStatusCode.CREATED).json(result);
   } catch (e) {
     Logger.error(e);
     res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "commit failed" });
@@ -304,20 +269,16 @@ async function stageAllAndCommit(req: Request, res: Response, next: NextFunction
   } = req.body;
 
   try {
+    const dir = getDefaultRepoDir(scenarioNameId);
+
     await git.add({
       fs,
-      dir: getDefaultRepoDir(scenarioNameId),
+      dir,
       filepath: ".",
     });
+    const result = await commitAndRetrieveStats(dir, message, author);
 
-    await git.commit({
-      fs,
-      dir: getDefaultRepoDir(scenarioNameId),
-      message,
-      author,
-    });
-
-    res.status(HTTPStatusCode.CREATED).json({ message: "stage and commit success" });
+    res.status(HTTPStatusCode.CREATED).json(result);
   } catch (e) {
     Logger.error(e);
     res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "stage and commit failed" });
