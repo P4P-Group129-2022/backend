@@ -14,20 +14,20 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
   Logger.info("initRepo run");
   await git.init({
     fs,
-    dir: getDefaultRepoDir("test1"),
+    dir: getDefaultRepoDir("testUser"),
     defaultBranch: "main",
   });
 
   const setupDummyRepoWithCommit = async () => {
-    fs.writeFileSync(getDefaultRepoDir("test1") + "/test.txt", "test123");
+    fs.writeFileSync(getDefaultRepoDir("testUser") + "/test.txt", "test123");
     await git.add({
       fs,
-      dir: getDefaultRepoDir("test1"),
+      dir: getDefaultRepoDir("testUser"),
       filepath: "test.txt",
     });
     await git.commit({
       fs,
-      dir: getDefaultRepoDir("test1"),
+      dir: getDefaultRepoDir("testUser"),
       message: "Add test file for repo init.",
       author: {
         name: "test",
@@ -43,12 +43,12 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
 async function getRepoStatus(req: Request, res: Response, next: NextFunction) {
   Logger.info("getStatus run");
 
-  const { scenarioNameId }: { scenarioNameId: string } = req.body;
+  const { username } = req.params;
 
   // For now, since we know that the only file we have is main.py, we can just check if it is modified or not.
   const status = await git.status({
     fs,
-    dir: getDefaultRepoDir(scenarioNameId),
+    dir: getDefaultRepoDir(username),
     filepath: "main.py",
   });
   res.json({ status });
@@ -57,12 +57,12 @@ async function getRepoStatus(req: Request, res: Response, next: NextFunction) {
 async function stageFile(req: Request, res: Response, next: NextFunction) {
   Logger.info("stageFile run");
 
-  const { scenarioNameId, fileName }: { scenarioNameId: string; fileName: string } = req.body;
+  const { username, fileName }: { username: string; fileName: string } = req.body;
 
   try {
     await git.add({
       fs,
-      dir: getDefaultRepoDir(scenarioNameId),
+      dir: getDefaultRepoDir(username),
       filepath: fileName,
     });
 
@@ -76,12 +76,12 @@ async function stageFile(req: Request, res: Response, next: NextFunction) {
 async function stageAllFiles(req: Request, res: Response, next: NextFunction) {
   Logger.info("stageAllFiles run");
 
-  const { scenarioNameId }: { scenarioNameId: string } = req.body;
+  const { username }: { username: string } = req.body;
 
   try {
     await git.add({
       fs,
-      dir: getDefaultRepoDir(scenarioNameId),
+      dir: getDefaultRepoDir(username),
       filepath: ".",
     });
 
@@ -230,11 +230,11 @@ async function commit(req: Request, res: Response, next: NextFunction) {
   Logger.info("commit run");
 
   const {
-    scenarioNameId,
+    username,
     message,
     author,
   }: {
-    scenarioNameId: string;
+    username: string;
     message: string;
     author: {
       name: string;
@@ -243,7 +243,7 @@ async function commit(req: Request, res: Response, next: NextFunction) {
   } = req.body;
 
   try {
-    const dir = getDefaultRepoDir(scenarioNameId);
+    const dir = getDefaultRepoDir(username);
     const result = await commitAndRetrieveStats(dir, message, author);
     res.status(HTTPStatusCode.CREATED).json(result);
   } catch (e) {
@@ -256,11 +256,11 @@ async function stageAllAndCommit(req: Request, res: Response, next: NextFunction
   Logger.info("stageAllAndCommit run");
 
   const {
-    scenarioNameId,
+    username,
     message,
     author,
   }: {
-    scenarioNameId: string;
+    username: string;
     message: string;
     author: {
       name: string;
@@ -269,7 +269,7 @@ async function stageAllAndCommit(req: Request, res: Response, next: NextFunction
   } = req.body;
 
   try {
-    const dir = getDefaultRepoDir(scenarioNameId);
+    const dir = getDefaultRepoDir(username);
 
     await git.add({
       fs,
