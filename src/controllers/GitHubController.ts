@@ -13,12 +13,6 @@ import { Octokit } from "@octokit/rest";
  * @param next
  */
 async function checkPR(req: Request, res: Response, next: NextFunction) {
-    // const octokit = new Octokit({ auth: `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` });
-    //
-    // const {
-    //     data: { login },
-    // } = await octokit.rest.users.getAuthenticated();
-    // console.log("Hello, %s", login);
     const {pullNumber} = req.params;
 
     const octokit = new Octokit();
@@ -34,7 +28,8 @@ async function checkPR(req: Request, res: Response, next: NextFunction) {
         return;
     }
 
-    return res.status(HTTPStatusCode.OK).json({pullRequest});
+    const isPRmade = true;
+    return res.status(HTTPStatusCode.OK).json({isPRmade});
 }
 
 export default { checkPR };
