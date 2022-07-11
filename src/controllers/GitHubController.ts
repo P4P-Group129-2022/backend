@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import HTTPStatusCode from "../constants/HTTPStatusCode";
 import { Octokit } from "@octokit/rest";
+import GitHubDetails from "../models/GitHubDetails";
+import mongoose from "mongoose";
 
 /**
  * This file contains controller methods for the GitHub related actions.
@@ -15,10 +17,17 @@ import { Octokit } from "@octokit/rest";
 async function checkPR(req: Request, res: Response, next: NextFunction) {
     const {pullNumber} = req.params;
 
+    const gitHubDetailsFromDB = await GitHubDetails.findOne({});
+
+    if (gitHubDetailsFromDB === null) {
+        res.status(404).send('There were problems with the existing GitHub details.');
+        return;
+    }
+
     const octokit = new Octokit();
     const { data: pullRequest } = await octokit.rest.pulls.get({
-        owner: "hiin3d55",
-        repo: "octokit-playaround",
+        owner: gitHubDetailsFromDB.owner,
+        repo: gitHubDetailsFromDB.repo,
         pull_number: parseInt(pullNumber),
     });
 
@@ -32,4 +41,28 @@ async function checkPR(req: Request, res: Response, next: NextFunction) {
     return res.status(HTTPStatusCode.OK).json({isPRmade});
 }
 
-export default { checkPR };
+/**
+ * Update the GitHub details.
+ * @param req
+ * @param res
+ * @param next
+ */
+async function updateGitHubDetails(req: Request, res: Response, next: NextFunction) {
+    const {owner, repo} = req.params;
+
+    const gitHubDetailsFromDB = await GitHubDetails.findOne({});
+
+    if (gitHubDetailsFromDB === null) {
+        res.status(404).send('There were problems with the existing GitHub details.');
+        return;
+    }
+
+    gitHubDetailsFromDB.owner = owner;
+    gitHubDetailsFromDB.repo = repo;
+
+    await gitHubDetailsFromDB.save();
+
+    return res.status(200).json({gitHubDetailsFromDB});
+}
+
+export default { checkPR, updateGitHubDetails };
