@@ -8,5 +8,6 @@ router.get("/", (_, res) => {
 });
 router.get("/:pullNumber", GitHubController.checkPR);
 router.put("/update", GitHubController.updateGitHubDetails);
+router.get("/invite/:username", GitHubController.inviteToOrganization);
 
 export default router;

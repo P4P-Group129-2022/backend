@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import HTTPStatusCode from "../constants/HTTPStatusCode";
 import { Octokit } from "@octokit/rest";
 import GitHubDetails from "../models/GitHubDetails";
-import mongoose from "mongoose";
+import logger from "../utils/Logger";
 
 /**
  * This file contains controller methods for the GitHub related actions.
@@ -62,7 +62,33 @@ async function updateGitHubDetails(req: Request, res: Response, next: NextFuncti
 
     await gitHubDetailsFromDB.save();
 
-    return res.status(200).json({gitHubDetailsFromDB});
+    return res.status(HTTPStatusCode.OK).json({gitHubDetailsFromDB});
 }
 
-export default { checkPR, updateGitHubDetails };
+/**
+ * Invites the user to our organization.
+ * @param req
+ * @param res
+ * @param next
+ */
+async function inviteToOrganization(req: Request, res: Response, next: NextFunction) {
+    const {username} = req.params;
+    const ORGANIZATION_OWNER_PAT = process.env.ORGANIZATION_OWNER_PAT || "";
+    const octokit = new Octokit({
+        auth: ORGANIZATION_OWNER_PAT,
+    });
+
+    await octokit.repos.addCollaborator({
+        owner: "P4P-Group129-2022",
+        repo: "backend",
+        username: username,
+        permission: "push",
+    }).catch((msg: any) => {
+        logger.error(`Error message: ${msg}`);
+        return;
+    });
+
+    return res.status(HTTPStatusCode.OK).json("Invitation sent.");
+}
+
+export default { checkPR, updateGitHubDetails, inviteToOrganization };
