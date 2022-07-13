@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from "express";
+import {NextFunction, Request, Response} from "express";
 import HTTPStatusCode from "../constants/HTTPStatusCode";
-import { Octokit } from "@octokit/rest";
+import {Octokit} from "@octokit/rest";
 import GitHubDetails from "../models/GitHubDetails";
 import logger from "../utils/Logger";
 
@@ -20,12 +20,12 @@ async function checkPR(req: Request, res: Response, next: NextFunction) {
     const gitHubDetailsFromDB = await GitHubDetails.findOne({});
 
     if (gitHubDetailsFromDB === null) {
-        res.status(404).send('There were problems with the existing GitHub details.');
+        res.status(HTTPStatusCode.NOT_FOUND).send('There were problems with the existing GitHub details.');
         return;
     }
 
     const octokit = new Octokit();
-    const { data: pullRequest } = await octokit.rest.pulls.get({
+    const {data: pullRequest} = await octokit.rest.pulls.get({
         owner: gitHubDetailsFromDB.owner,
         repo: gitHubDetailsFromDB.repo,
         pull_number: parseInt(pullNumber),
@@ -53,7 +53,7 @@ async function updateGitHubDetails(req: Request, res: Response, next: NextFuncti
     const gitHubDetailsFromDB = await GitHubDetails.findOne({});
 
     if (gitHubDetailsFromDB === null) {
-        res.status(404).send('There were problems with the existing GitHub details.');
+        res.status(HTTPStatusCode.NOT_FOUND).send('There were problems with the existing GitHub details.');
         return;
     }
 
@@ -74,13 +74,25 @@ async function updateGitHubDetails(req: Request, res: Response, next: NextFuncti
 async function inviteToOrganization(req: Request, res: Response, next: NextFunction) {
     const {username} = req.params;
     const ORGANIZATION_OWNER_PAT = process.env.ORGANIZATION_OWNER_PAT || "";
+    const ORGANIZATION_NAME = "P4P-Group129-2022";
+    const REPO_CREATION_DELAY = 3000;
+
     const octokit = new Octokit({
         auth: ORGANIZATION_OWNER_PAT,
     });
+    const repos = await octokit.repos.listForOrg({
+        org: ORGANIZATION_NAME,
+    })
+    if (!repos.data.map((repo) => repo.name).includes(username)) {
+        await createRepo(octokit, ORGANIZATION_NAME, username);
+    }
+    console.log("Creating a new repo for the user...");
+    setTimeout(function() {
+    }, REPO_CREATION_DELAY);
 
     await octokit.repos.addCollaborator({
-        owner: "P4P-Group129-2022",
-        repo: "backend",
+        owner: ORGANIZATION_NAME,
+        repo: username,
         username: username,
         permission: "push",
     }).catch((msg: any) => {
@@ -91,4 +103,14 @@ async function inviteToOrganization(req: Request, res: Response, next: NextFunct
     return res.status(HTTPStatusCode.OK).json("Invitation sent.");
 }
 
-export default { checkPR, updateGitHubDetails, inviteToOrganization };
+/**
+ * Create a new repo in our organization for the user.
+ * @param octokit
+ * @param org
+ * @param name
+ */
+const createRepo = async (octokit: Octokit, org: string, name: string) => {
+    await octokit.repos.createInOrg({org, name, auto_init: true})
+}
+
+export default {checkPR, updateGitHubDetails, inviteToOrganization};
