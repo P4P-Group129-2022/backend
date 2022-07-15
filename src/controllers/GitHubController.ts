@@ -25,13 +25,16 @@ async function checkPR(req: Request, res: Response, next: NextFunction) {
     }
 
     const octokit = new Octokit();
-    const {data: pullRequest} = await octokit.rest.pulls.get({
-        owner: gitHubDetailsFromDB.owner,
-        repo: gitHubDetailsFromDB.repo,
-        pull_number: parseInt(pullNumber),
-    });
 
-    if (pullRequest === null) {
+    try {
+        const {data: pullRequest} = await octokit.rest.pulls.get({
+            owner: gitHubDetailsFromDB.owner,
+            repo: gitHubDetailsFromDB.repo,
+            pull_number: parseInt(pullNumber),
+        });
+    }
+    catch (error) {
+        logger.error(`Error occurred when retrieving specified pull request.`);
         res.status(HTTPStatusCode.NOT_FOUND)
             .send('PR with the pull request number ' + pullNumber + ' was not found.');
         return;
