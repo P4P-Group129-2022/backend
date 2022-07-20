@@ -3,6 +3,7 @@ import Logger from "../utils/Logger";
 import fs from "fs";
 import { getDefaultRepoDir } from "../utils/RepoUtils";
 import HTTPStatusCode from "../constants/HTTPStatusCode";
+import { File } from "../DTOs/ApiTypes";
 
 async function retrieve(req: Request, res: Response, next: NextFunction) {
   Logger.info("retrieve run");
@@ -12,8 +13,13 @@ async function retrieve(req: Request, res: Response, next: NextFunction) {
   // For now just retrieve main.py in a repos/scenarioDefaults/{scenarioId} directory,
   const dir = getDefaultRepoDir(String(username));
   const content = await fs.promises.readFile(`${dir}/main.py`, "utf8");
+  const response: File[] = [{
+    name: "main.py",
+    isFolder: false,
+    contents: content
+  }];
 
-  res.status(HTTPStatusCode.OK).json({ content });
+  res.status(HTTPStatusCode.OK).json(response);
 }
 
 async function modify(req: Request, res: Response, next: NextFunction) {
