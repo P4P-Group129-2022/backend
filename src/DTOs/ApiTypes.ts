@@ -26,3 +26,10 @@ export type ScenarioSegment = {
     notifications: mongoose.Schema.Types.ObjectId[];
     endRepoId: number;
 }
+
+export type File = {
+    name: string;
+    isFolder: boolean;
+    contents?: string;
+    folderContents?: File[];
+}
