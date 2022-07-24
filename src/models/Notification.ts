@@ -14,7 +14,6 @@ export interface INotificationModel extends INotification, Document {
 
 const NotificationSchema: Schema = new Schema(
     {
-        nameId: {type: String, required: true, unique: true},
         title: {type: String, required: true},
         message: {type: String, required: true},
         imageSrc: {type: String, required: true},
