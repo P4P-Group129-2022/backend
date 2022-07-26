@@ -5,33 +5,31 @@ import git from "isomorphic-git";
 import HTTPStatusCode from "../constants/HTTPStatusCode";
 import { getDefaultRepoDir } from "../utils/RepoUtils";
 import { commitAndRetrieveStats } from "../utils/CommitUtils";
+import path from "path";
 
 async function initRepo(req: Request, res: Response, next: NextFunction) {
   Logger.info("initRepo run");
+
+  const { username, scenarioNameId }: { username: string, scenarioNameId: string } = req.body;
+
+  const dir = getDefaultRepoDir(username);
+
+  // Initialise the repo.
   await git.init({
-    fs,
-    dir: getDefaultRepoDir("testUser"),
-    defaultBranch: "main",
+    fs, dir, defaultBranch: "main",
   });
 
-  const setupDummyRepoWithCommit = async () => {
-    fs.writeFileSync(getDefaultRepoDir("testUser") + "/test.txt", "test123");
-    await git.add({
-      fs,
-      dir: getDefaultRepoDir("testUser"),
-      filepath: "test.txt",
-    });
-    await git.commit({
-      fs,
-      dir: getDefaultRepoDir("testUser"),
-      message: "Add test file for repo init.",
-      author: {
-        name: "test",
-        email: "hpar461@aucklanduni.ac.nz",
-      },
-    });
-  };
-  await setupDummyRepoWithCommit();
+  // copy main.py from scenario to repo
+  const srcDir = getDefaultRepoDir(path.join("scenarioDefaults", scenarioNameId));
+  fs.copyFileSync(path.join(srcDir, "main.py"), path.join(dir, "main.py"));
+
+  // Add the file and create an initial commit
+  await git.add({
+    fs, dir, filepath: "main.py"
+  });
+  await git.commit({
+    fs, dir, message: "Initial commit", author: { name: "Admin", email: "hpar461@aucklanduni.ac.nz" }
+  });
 
   res.status(HTTPStatusCode.CREATED).json({ message: "init repo success" });
 }
