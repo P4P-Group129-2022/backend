@@ -6,6 +6,7 @@ import MessageRoutes from "./MessageRoutes";
 import ScenarioRoutes from "./ScenarioRoutes";
 import GitHubRoutes from "./GitHubRoutes";
 import FileRoutes from "./FileRoutes";
+import UserRoutes from "./UserRoutes";
 
 const router = express();
 
@@ -16,5 +17,6 @@ router.use("/message", MessageRoutes);
 router.use("/scenario", ScenarioRoutes);
 router.use("/github", GitHubRoutes);
 router.use("/file", FileRoutes);
+router.use("/user", UserRoutes);
 
 export default router;
