@@ -149,7 +149,12 @@ async function stageAllAndCommit(req: Request, res: Response, next: NextFunction
 async function push(req: Request, res: Response, next: NextFunction) {
   Logger.info("push run");
 
-  const { username, branch, accessToken }: { username: string, branch: string, accessToken: string } = req.body;
+  const {
+    username,
+    remote,
+    branch,
+    accessToken
+  }: { username: string, remote: string, branch: string, accessToken: string } = req.body;
 
   try {
     const dir = getDefaultRepoDir(username);
@@ -157,7 +162,7 @@ async function push(req: Request, res: Response, next: NextFunction) {
       fs,
       http,
       dir,
-      remote: "origin",
+      remote,
       ref: branch,
       onAuth: () => ({
         username: accessToken,
@@ -166,9 +171,9 @@ async function push(req: Request, res: Response, next: NextFunction) {
     });
 
     res.sendStatus(HTTPStatusCode.NO_CONTENT);
-  } catch (e) {
+  } catch (e: any) {
     Logger.error(e);
-    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "push failed" });
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: `push failed with error - ${e.data.statusMessage}: ${e.data.response}` });
   }
 }
 
