@@ -6,6 +6,7 @@ import HTTPStatusCode from "../constants/HTTPStatusCode";
 import { getDefaultRepoDir } from "../utils/RepoUtils";
 import { commitAndRetrieveStats } from "../utils/CommitUtils";
 import path from "path";
+import http from "isomorphic-git/http/node";
 
 async function initRepo(req: Request, res: Response, next: NextFunction) {
   Logger.info("initRepo run");
@@ -145,4 +146,30 @@ async function stageAllAndCommit(req: Request, res: Response, next: NextFunction
   }
 }
 
-export default { initRepo, getRepoStatus, stageFile, stageAllFiles, stageAllAndCommit, commit };
+async function push(req: Request, res: Response, next: NextFunction) {
+  Logger.info("push run");
+
+  const { username, branch, accessToken }: { username: string, branch: string, accessToken: string } = req.body;
+
+  try {
+    const dir = getDefaultRepoDir(username);
+    await git.push({
+      fs,
+      http,
+      dir,
+      remote: "origin",
+      ref: branch,
+      onAuth: () => ({
+        username: accessToken,
+        password: "x-oauth-basic",
+      })
+    });
+
+    res.sendStatus(HTTPStatusCode.NO_CONTENT);
+  } catch (e) {
+    Logger.error(e);
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "push failed" });
+  }
+}
+
+export default { initRepo, getRepoStatus, stageFile, stageAllFiles, stageAllAndCommit, commit, push };
