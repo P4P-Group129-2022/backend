@@ -12,5 +12,6 @@ router.post("/stage", GitActionController.stageFile);
 router.post("/stage-all", GitActionController.stageAllFiles);
 router.post("/stage-all-and-commit", GitActionController.stageAllAndCommit);
 router.post("/commit", GitActionController.commit);
+router.post("/push", GitActionController.push);
 
 export default router;
