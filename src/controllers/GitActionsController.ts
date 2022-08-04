@@ -182,21 +182,21 @@ async function branch(req: Request, res: Response, next: NextFunction) {
 
   const {
     username,
-    branchName,
-  }: { username: string; branchName: string } = req.body;
+    newBranchName,
+  }: { username: string; newBranchName: string } = req.body;
 
   try {
     const dir = getDefaultRepoDir(username);
-    const result = await git.branch({
+    await git.branch({
       fs,
       dir,
-      ref: branchName,
+      ref: newBranchName,
     });
 
-    res.status(HTTPStatusCode.CREATED).json(result);
-  } catch (e) {
+    res.sendStatus(HTTPStatusCode.CREATED);
+  } catch (e: any) {
     Logger.error(e);
-    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "branch failed" });
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: e.code });
   }
 }
 
@@ -205,22 +205,22 @@ async function checkout(req: Request, res: Response, next: NextFunction) {
 
   const {
     username,
-    branchName,
-  }: { username: string; branchName: string } = req.body;
+    branch,
+  }: { username: string; branch: string } = req.body;
 
   try {
     const dir = getDefaultRepoDir(username);
     // TODO: an issue must arise when we try to checkout while having commits and changes. Address this issue.
-    const result = await git.checkout({
+    await git.checkout({
       fs,
       dir,
-      ref: branchName,
+      ref: branch,
     });
 
-    res.status(HTTPStatusCode.CREATED).json(result);
-  } catch (e) {
+    res.sendStatus(HTTPStatusCode.NO_CONTENT);
+  } catch (e: any) {
     Logger.error(e);
-    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "checkout failed" });
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: e.code });
   }
 }
 
