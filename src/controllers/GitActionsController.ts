@@ -35,6 +35,17 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
   res.status(HTTPStatusCode.CREATED).json({ message: "init repo success" });
 }
 
+async function addRemote(req: Request, res: Response, next: NextFunction) {
+  const {username, remoteUrl} = req.body;
+  await git.addRemote({
+    fs,
+    dir: getDefaultRepoDir(username),
+    remote: 'upstream',
+    url: remoteUrl
+  })
+  res.status(HTTPStatusCode.NO_CONTENT).json({ message: "add remote success" });
+}
+
 async function getRepoStatus(req: Request, res: Response, next: NextFunction) {
   Logger.info("getStatus run");
 
@@ -177,4 +188,4 @@ async function push(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export default { initRepo, getRepoStatus, stageFile, stageAllFiles, stageAllAndCommit, commit, push };
+export default { initRepo, addRemote, getRepoStatus, stageFile, stageAllFiles, stageAllAndCommit, commit, push };
