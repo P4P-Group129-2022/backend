@@ -177,4 +177,75 @@ async function push(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export default { initRepo, getRepoStatus, stageFile, stageAllFiles, stageAllAndCommit, commit, push };
+async function branch(req: Request, res: Response, next: NextFunction) {
+  Logger.info("branch run");
+
+  const {
+    username,
+    branchName,
+  }: { username: string; branchName: string } = req.body;
+
+  try {
+    const dir = getDefaultRepoDir(username);
+    const result = await git.branch({
+      fs,
+      dir,
+      ref: branchName,
+    });
+
+    res.status(HTTPStatusCode.CREATED).json(result);
+  } catch (e) {
+    Logger.error(e);
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "branch failed" });
+  }
+}
+
+async function checkout(req: Request, res: Response, next: NextFunction) {
+  Logger.info("checkout run");
+
+  const {
+    username,
+    branchName,
+  }: { username: string; branchName: string } = req.body;
+
+  try {
+    const dir = getDefaultRepoDir(username);
+    // TODO: an issue must arise when we try to checkout while having commits and changes. Address this issue.
+    const result = await git.checkout({
+      fs,
+      dir,
+      ref: branchName,
+    });
+
+    res.status(HTTPStatusCode.CREATED).json(result);
+  } catch (e) {
+    Logger.error(e);
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "checkout failed" });
+  }
+}
+
+// TODO: isomorphic-git doesn't have rebase. We need to implement this manually.
+// async function rebase(req: Request, res: Response, next: NextFunction) {
+//   Logger.info("rebase run");
+//
+//   const {
+//     username,
+//     branchName,
+//   }: { username: string; branchName: string } = req.body;
+//
+//   try {
+//     const dir = getDefaultRepoDir(username);
+//     const result = await git.rebase({
+//       fs,
+//       dir,
+//       ref: branchName,
+//     });
+//
+//     res.status(HTTPStatusCode.CREATED).json(result);
+//   } catch (e) {
+//     Logger.error(e);
+//     res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "rebase failed" });
+//   }
+// }
+
+export default { initRepo, getRepoStatus, stageFile, stageAllFiles, stageAllAndCommit, commit, push, branch, checkout };
