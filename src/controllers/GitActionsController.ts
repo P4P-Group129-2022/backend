@@ -40,6 +40,7 @@ async function addRemote(req: Request, res: Response, next: NextFunction) {
   await git.addRemote({
     fs,
     dir: getDefaultRepoDir(username),
+    gitdir: getDefaultRepoDir(username) + "\\.git",
     remote: 'upstream',
     url: remoteUrl
   })
