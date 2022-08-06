@@ -7,6 +7,7 @@ router.get("/", (_, res) => {
   res.json({ message: "You are connected to backend git actions api" });
 });
 router.post("/init", GitActionController.initRepo);
+router.post("/add-remote", GitActionController.addRemote);
 router.get("/status/:username", GitActionController.getRepoStatus);
 router.post("/stage", GitActionController.stageFile);
 router.post("/stage-all", GitActionController.stageAllFiles);
