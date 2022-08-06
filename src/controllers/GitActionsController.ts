@@ -41,7 +41,7 @@ async function addRemote(req: Request, res: Response, next: NextFunction) {
     fs,
     dir: getDefaultRepoDir(username),
     gitdir: getDefaultRepoDir(username) + "\\.git",
-    remote: 'upstream',
+    remote: 'origin',
     url: remoteUrl
   })
   res.status(HTTPStatusCode.NO_CONTENT).json({ message: "add remote success" });
@@ -176,6 +176,7 @@ async function push(req: Request, res: Response, next: NextFunction) {
       dir,
       remote,
       ref: branch,
+      force: true,
       onAuth: () => ({
         username: accessToken,
         password: "x-oauth-basic",
