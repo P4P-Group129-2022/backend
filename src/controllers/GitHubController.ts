@@ -15,21 +15,19 @@ import logger from "../utils/Logger";
  * @param next
  */
 async function checkPR(req: Request, res: Response, next: NextFunction) {
-    const {pullNumber} = req.params;
+    const {pullNumber, username} = req.params;
 
     const gitHubDetailsFromDB = await GitHubDetails.findOne({});
-
     if (gitHubDetailsFromDB === null) {
         res.status(HTTPStatusCode.NOT_FOUND).send('There were problems with the existing GitHub details.');
         return;
     }
 
     const octokit = new Octokit();
-
     try {
         const {data: pullRequest} = await octokit.rest.pulls.get({
             owner: gitHubDetailsFromDB.owner,
-            repo: gitHubDetailsFromDB.repo,
+            repo: username,
             pull_number: parseInt(pullNumber),
         });
     }
