@@ -6,6 +6,25 @@ import Scenario from "../models/Scenario";
  */
 
 /**
+ * Retrieves the list of all scenarios.
+ * @param req
+ * @param res
+ * @param next
+ */
+const getScenarios = async (req: Request, res: Response, next: NextFunction) => {
+  const scenariosFromDB = await Scenario.find()
+      .populate({ path: "segments.chats", populate: { path: "sender" } })
+      .populate("segments.notifications");
+
+  if (scenariosFromDB === null) {
+    res.status(404).send("Scenario not found");
+    return;
+  }
+
+  return res.status(200).json({ scenariosFromDB });
+};
+
+/**
  * Retrieves a scenario given their nameId.
  * @param req
  * @param res
@@ -27,5 +46,6 @@ const getScenarioByNameId = async (req: Request, res: Response, next: NextFuncti
 };
 
 export default {
+  getScenarios,
   getScenarioByNameId,
 };
