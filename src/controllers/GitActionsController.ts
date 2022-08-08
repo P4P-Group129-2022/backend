@@ -42,8 +42,8 @@ async function addRemote(req: Request, res: Response, next: NextFunction) {
   await git.addRemote({
     fs,
     dir: getDefaultRepoDir(username),
-    gitdir: getDefaultRepoDir(username) + "\\.git",
-    remote: "origin",
+    gitdir: path.join(getDefaultRepoDir(username), ".git"),
+    remote: 'origin',
     url: remoteUrl
   });
   res.status(HTTPStatusCode.NO_CONTENT).json({ message: "add remote success" });
