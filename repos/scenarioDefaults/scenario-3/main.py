@@ -4,7 +4,7 @@ def very_important_function():
 
 def main():
     very_important_function()
+    BUG!!!!REMOVE_ME
 
 if __name__ == "__main__":
     main()
-    BUG!!!!REMOVE_ME
