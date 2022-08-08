@@ -1,9 +1,33 @@
 import {NextFunction, Request, Response} from 'express';
 import User from "../models/User";
+import mongoose from "mongoose";
 
 /**
  * This file contains controller methods for the User model.
  */
+
+/**
+ * Create an user given their GitHub username and email.
+ * @param req
+ * @param res
+ * @param next
+ */
+const createUser = async (req: Request, res: Response, next: NextFunction) => {
+    const { username, email } = req.body;
+    const completedPreTest = false;
+    const currentScenario = 0;
+
+    const newUser = new User({
+        _id : new mongoose.Types.ObjectId(),
+        username,
+        completedPreTest,
+        currentScenario,
+    });
+
+    return newUser.save()
+        .then(() => res.status(201).json({ newUser }))
+        .catch((error: Error) => res.status(500).json({ error }));
+};
 
 /**
  * Retrieves an user given their GitHub username.
@@ -44,6 +68,7 @@ const getUserByEmail = async (req: Request, res: Response, next: NextFunction) =
 };
 
 export default {
+    createUser,
     getUserByGitHubUsername,
     getUserByEmail,
 };
