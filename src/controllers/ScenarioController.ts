@@ -20,7 +20,7 @@ const getScenariosDetails = async (req: Request, res: Response, next: NextFuncti
         return;
     }
 
-    return res.status(200).json({scenariosFromDB: scenarioDetailsFromDB});
+    return res.status(200).json({scenarioDetailsFromDB});
 };
 
 /**
