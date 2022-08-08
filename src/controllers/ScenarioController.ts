@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import {NextFunction, Request, Response} from "express";
 import Scenario from "../models/Scenario";
 
 /**
@@ -11,17 +11,16 @@ import Scenario from "../models/Scenario";
  * @param res
  * @param next
  */
-const getScenarios = async (req: Request, res: Response, next: NextFunction) => {
-  const scenariosFromDB = await Scenario.find()
-      .populate({ path: "segments.chats", populate: { path: "sender" } })
-      .populate("segments.notifications");
+const getScenariosDetails = async (req: Request, res: Response, next: NextFunction) => {
+    const scenariosFromDB = await Scenario.find()
+        .select('name nameId description')
 
-  if (scenariosFromDB === null) {
-    res.status(404).send("Scenario not found");
-    return;
-  }
+    if (scenariosFromDB === null) {
+        res.status(404).send("Scenario not found");
+        return;
+    }
 
-  return res.status(200).json({ scenariosFromDB });
+    return res.status(200).json({scenariosFromDB});
 };
 
 /**
@@ -31,21 +30,21 @@ const getScenarios = async (req: Request, res: Response, next: NextFunction) => 
  * @param next
  */
 const getScenarioByNameId = async (req: Request, res: Response, next: NextFunction) => {
-  const { nameId } = req.params;
-  const scenarioFromDB = await Scenario
-    .findOne({ nameId })
-    .populate({ path: "segments.chats", populate: { path: "sender" } })
-    .populate("segments.notifications");
+    const {nameId} = req.params;
+    const scenarioFromDB = await Scenario
+        .findOne({nameId})
+        .populate({path: "segments.chats", populate: {path: "sender"}})
+        .populate("segments.notifications");
 
-  if (scenarioFromDB === null) {
-    res.status(404).send("Scenario not found");
-    return;
-  }
+    if (scenarioFromDB === null) {
+        res.status(404).send("Scenario not found");
+        return;
+    }
 
-  return res.status(200).json({ scenarioFromDB });
+    return res.status(200).json({scenarioFromDB});
 };
 
 export default {
-  getScenarios,
-  getScenarioByNameId,
+    getScenarios: getScenariosDetails,
+    getScenarioByNameId,
 };
