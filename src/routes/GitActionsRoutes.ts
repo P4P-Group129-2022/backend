@@ -16,5 +16,7 @@ router.post("/commit", GitActionController.commit);
 router.post("/push", GitActionController.push);
 router.post("/branch", GitActionController.branch);
 router.post("/checkout", GitActionController.checkout);
+router.post("/rebase", GitActionController.rebase);
+router.get("/currentBranch/:username", GitActionController.currentBranch);
 
 export default router;

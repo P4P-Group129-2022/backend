@@ -8,6 +8,8 @@ import { commitAndRetrieveStats } from "../utils/CommitUtils";
 import path from "path";
 import http from "isomorphic-git/http/node";
 
+const admin = { name: "Admin", email: "hpar461@aucklanduni.ac.nz" };
+
 async function initRepo(req: Request, res: Response, next: NextFunction) {
   Logger.info("initRepo run");
 
@@ -29,21 +31,21 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
     fs, dir, filepath: "main.py"
   });
   await git.commit({
-    fs, dir, message: "Initial commit", author: { name: "Admin", email: "hpar461@aucklanduni.ac.nz" }
+    fs, dir, message: "Initial commit", author: admin
   });
 
   res.status(HTTPStatusCode.CREATED).json({ message: "init repo success" });
 }
 
 async function addRemote(req: Request, res: Response, next: NextFunction) {
-  const {username, remoteUrl} = req.body;
+  const { username, remoteUrl } = req.body;
   await git.addRemote({
     fs,
     dir: getDefaultRepoDir(username),
     gitdir: path.join(getDefaultRepoDir(username), ".git"),
     remote: 'origin',
     url: remoteUrl
-  })
+  });
   res.status(HTTPStatusCode.NO_CONTENT).json({ message: "add remote success" });
 }
 
@@ -237,28 +239,66 @@ async function checkout(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-// TODO: isomorphic-git doesn't have rebase. We need to implement this manually.
-// async function rebase(req: Request, res: Response, next: NextFunction) {
-//   Logger.info("rebase run");
-//
-//   const {
-//     username,
-//     branchName,
-//   }: { username: string; branchName: string } = req.body;
-//
-//   try {
-//     const dir = getDefaultRepoDir(username);
-//     const result = await git.rebase({
-//       fs,
-//       dir,
-//       ref: branchName,
-//     });
-//
-//     res.status(HTTPStatusCode.CREATED).json(result);
-//   } catch (e) {
-//     Logger.error(e);
-//     res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "rebase failed" });
-//   }
-// }
+async function rebase(req: Request, res: Response, next: NextFunction) {
+  Logger.info("rebase run");
 
-export default { initRepo, addRemote, getRepoStatus, stageFile, stageAllFiles, stageAllAndCommit, commit, push, branch, checkout };
+  const {
+    username,
+    branch,
+  }: { username: string; branch: string } = req.body;
+
+  try {
+    const dir = getDefaultRepoDir(username);
+
+    // because rebase is not supported, we will simply mimic what impact rebase has on the codebase.
+    fs.appendFileSync(path.join(dir, "main.py"), `\n    print("Line added from rebase.")\n`);
+
+    await git.add({
+      fs,
+      dir,
+      filepath: "main.py",
+    });
+    await commitAndRetrieveStats(dir, `Rebase from ${branch}`, admin);
+
+    res.sendStatus(HTTPStatusCode.NO_CONTENT);
+  } catch (e: any) {
+    Logger.error(e);
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: `Rebase failed: ${e.code} from ${e.caller}` });
+  }
+}
+
+async function currentBranch(req: Request, res: Response, next: NextFunction) {
+  Logger.info("currentBranch run");
+
+  const { username } = req.params;
+  const fullname = req.query.fullname === "true";
+
+  try {
+    const dir = getDefaultRepoDir(username);
+    const currentBranch = await git.currentBranch({
+      fs,
+      dir,
+      fullname
+    });
+
+    res.status(HTTPStatusCode.OK).send(currentBranch);
+  } catch (e: any) {
+    Logger.error(e);
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: e.code });
+  }
+}
+
+export default {
+  initRepo,
+  addRemote,
+  getRepoStatus,
+  stageFile,
+  stageAllFiles,
+  stageAllAndCommit,
+  commit,
+  push,
+  branch,
+  checkout,
+  rebase,
+  currentBranch,
+};
