@@ -1,6 +1,7 @@
 import {NextFunction, Request, Response} from 'express';
 import User from "../models/User";
 import mongoose from "mongoose";
+import HTTPStatusCode from "../constants/HTTPStatusCode";
 
 /**
  * This file contains controller methods for the User model.
@@ -13,20 +14,25 @@ import mongoose from "mongoose";
  * @param next
  */
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
-    const { username, email } = req.body;
+    const {username} = req.body;
     const completedPreTest = false;
     const currentScenario = 0;
 
-    const newUser = new User({
-        _id : new mongoose.Types.ObjectId(),
-        username,
-        completedPreTest,
-        currentScenario,
-    });
+    const userFromDB = await User.findOne({githubUsername: username});
+    if (!userFromDB) {
+        const newUser = new User({
+            _id: new mongoose.Types.ObjectId(),
+            githubUsername: username,
+            completedPreTest,
+            currentScenario,
+        });
 
-    return newUser.save()
-        .then(() => res.status(201).json({ newUser }))
-        .catch((error: Error) => res.status(500).json({ error }));
+        return newUser.save()
+            .then(() => res.status(201).json({newUser}))
+            .catch((error: Error) => res.status(500).json({error}));
+    }
+    return res.status(HTTPStatusCode.CONFLICT).send("User creation in db failed due to the provided username " +
+        "already existing in the database");
 };
 
 /**
@@ -36,7 +42,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
  * @param next
  */
 const getUserByGitHubUsername = async (req: Request, res: Response, next: NextFunction) => {
-    const { gitHubUsername } = req.params;
+    const {gitHubUsername} = req.params;
 
     const userFromDB = await User.findOne({gitHubUsername});
 
@@ -55,7 +61,7 @@ const getUserByGitHubUsername = async (req: Request, res: Response, next: NextFu
  * @param next
  */
 const getUserByEmail = async (req: Request, res: Response, next: NextFunction) => {
-    const { email } = req.params;
+    const {email} = req.params;
 
     const userFromDB = await User.findOne({email});
 

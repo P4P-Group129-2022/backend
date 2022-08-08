@@ -5,7 +5,6 @@ import mongoose, {Document, Schema} from 'mongoose';
  */
 export interface IUser {
     gitHubUsername: string;
-    email: string;
     completedPreTest: boolean;
     currentScenario: number;
 }
@@ -15,8 +14,7 @@ export interface IUserModel extends IUser, Document {
 
 const UserSchema: Schema = new Schema(
     {
-        githubUsername: {type: String, required: true},
-        email: {type: String, required: true},
+        githubUsername: {type: String, required: true, unique: true},
         completedPreTest: {type: Boolean, required: true},
         currentScenario: {type: Number, required: true},
     });
