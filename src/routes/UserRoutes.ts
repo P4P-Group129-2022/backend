@@ -5,5 +5,7 @@ const router = express();
 
 router.get("/github/:gitHubUsername", UserController.getUserByGitHubUsername);
 router.get("/email/:gitHubUsername", UserController.getUserByEmail);
+router.post("/complete-pre-test", UserController.completePreTest);
+router.post("/create", UserController.createUser);
 
 export default router;
