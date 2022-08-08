@@ -12,15 +12,15 @@ import Scenario from "../models/Scenario";
  * @param next
  */
 const getScenariosDetails = async (req: Request, res: Response, next: NextFunction) => {
-    const scenariosFromDB = await Scenario.find()
+    const scenarioDetailsFromDB = await Scenario.find()
         .select('name nameId description')
 
-    if (scenariosFromDB === null) {
+    if (scenarioDetailsFromDB === null) {
         res.status(404).send("Scenario not found");
         return;
     }
 
-    return res.status(200).json({scenariosFromDB});
+    return res.status(200).json({scenariosFromDB: scenarioDetailsFromDB});
 };
 
 /**
