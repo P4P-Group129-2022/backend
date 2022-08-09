@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import User from "../models/User";
 import HTTPStatusCode from "../constants/HTTPStatusCode";
-import logger from "../utils/Logger";
 import Logger from "../utils/Logger";
 
 /**
@@ -62,6 +61,22 @@ const completePreTest = async (req: Request, res: Response, next: NextFunction) 
   return res.status(HTTPStatusCode.OK).json({ userFromDB });
 };
 
+const updateCurrentScenario = async (req: Request, res: Response, next: NextFunction) => {
+  const { gitHubUsername, currentScenario } = req.params;
+
+  const userFromDB = await User.findOne({ gitHubUsername });
+
+  if (userFromDB === null) {
+    res.status(404).send("User with GitHub username: " + gitHubUsername + " not found");
+    return;
+  }
+
+  userFromDB.currentScenario = parseInt(currentScenario);
+  await userFromDB.save();
+
+  return res.status(HTTPStatusCode.OK).json({ userFromDB });
+};
+
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const {
     githubUsername,
@@ -87,6 +102,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     email,
     displayName,
     completedPreTest: false,
+    currentScenario: 0,
   });
   await user.save();
 
@@ -97,5 +113,6 @@ export default {
   getUserByGitHubUsername,
   getUserByEmail,
   completePreTest,
+  updateCurrentScenario,
   createUser,
 };
