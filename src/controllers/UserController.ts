@@ -61,8 +61,8 @@ const completePreTest = async (req: Request, res: Response, next: NextFunction) 
   return res.status(HTTPStatusCode.OK).json({ userFromDB });
 };
 
-const updateCurrentScenario = async (req: Request, res: Response, next: NextFunction) => {
-  const { gitHubUsername, currentScenario } = req.params;
+const incrementCurrentScenario = async (req: Request, res: Response, next: NextFunction) => {
+  const { gitHubUsername } = req.params;
 
   const userFromDB = await User.findOne({ gitHubUsername });
 
@@ -71,7 +71,7 @@ const updateCurrentScenario = async (req: Request, res: Response, next: NextFunc
     return;
   }
 
-  userFromDB.currentScenario = parseInt(currentScenario);
+  userFromDB.currentScenario++;
   await userFromDB.save();
 
   return res.status(HTTPStatusCode.OK).json({ userFromDB });
@@ -113,6 +113,6 @@ export default {
   getUserByGitHubUsername,
   getUserByEmail,
   completePreTest,
-  updateCurrentScenario,
+  incrementCurrentScenario,
   createUser,
 };
