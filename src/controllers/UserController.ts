@@ -47,12 +47,12 @@ const getUserByEmail = async (req: Request, res: Response, next: NextFunction) =
 };
 
 const completePreTest = async (req: Request, res: Response, next: NextFunction) => {
-  const { gitHubUsername } = req.params;
+  const { githubUsername }: { githubUsername: string } = req.body;
 
-  const userFromDB = await User.findOne({ gitHubUsername });
+  const userFromDB = await User.findOne({ githubUsername }).exec();
 
   if (userFromDB === null) {
-    res.status(404).send("User with GitHub username: " + gitHubUsername + " not found");
+    res.status(404).send("User with GitHub username: " + githubUsername + " not found");
     return;
   }
 
@@ -69,15 +69,16 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     displayName
   }: { githubUsername: string, email: string, displayName: string } = req.body;
 
-  Logger.info(githubUsername);
-  Logger.info(email);
-  Logger.info(displayName);
+  // Logger.info(githubUsername);
+  // Logger.info(email);
+  // Logger.info(displayName);
 
   const userFromDB = await User.findOne({ githubUsername });
 
   Logger.info(`user ${JSON.stringify(userFromDB)}`);
 
   if (userFromDB !== null) {
+    Logger.info("not null");
     res.status(HTTPStatusCode.CREATED).json({ userFromDB });
     return;
   }
