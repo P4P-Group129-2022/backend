@@ -22,6 +22,11 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
     fs, dir, defaultBranch: "main",
   });
 
+  // checkout to main
+  await git.checkout({
+    fs, dir, ref: "main",
+  });
+
   // copy main.py from scenario to repo
   const srcDir = getDefaultRepoDir(path.join("scenarioDefaults", scenarioNameId));
   fs.copyFileSync(path.join(srcDir, "main.py"), path.join(dir, "main.py"));
