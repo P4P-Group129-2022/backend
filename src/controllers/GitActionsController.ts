@@ -23,9 +23,9 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
   });
 
   // checkout to main
-  await git.checkout({
-    fs, dir, ref: "main",
-  });
+  // await git.checkout({
+  //   fs, dir, ref: "main",
+  // });
 
   // copy main.py from scenario to repo
   const srcDir = getDefaultRepoDir(path.join("scenarioDefaults", scenarioNameId));
