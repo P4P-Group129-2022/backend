@@ -10,11 +10,11 @@ async function retrieve(req: Request, res: Response, next: NextFunction) {
 
   const { username } = req.query;
 
-  // For now just retrieve main.py in a repos/scenarioDefaults/{scenarioId} directory,
+  // For now just retrieve index.html in a repos/scenarioDefaults/{scenarioId} directory,
   const dir = getDefaultRepoDir(String(username));
-  const content = await fs.promises.readFile(`${dir}/main.py`, "utf8");
+  const content = await fs.promises.readFile(`${dir}/index.html`, "utf8");
   const response: File[] = [{
-    name: "main.py",
+    name: "index.html",
     isFolder: false,
     contents: content
   }];
@@ -30,7 +30,7 @@ async function modify(req: Request, res: Response, next: NextFunction) {
   const dir = getDefaultRepoDir(username);
 
   try {
-    await fs.promises.writeFile(`${dir}/main.py`, content);
+    await fs.promises.writeFile(`${dir}/index.html`, content);
     res.sendStatus(HTTPStatusCode.NO_CONTENT);
   } catch (err) {
     res.sendStatus(HTTPStatusCode.INTERNAL_SERVER_ERROR);

@@ -27,13 +27,13 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
   //   fs, dir, ref: "main",
   // });
 
-  // copy main.py from scenario to repo
+  // copy index.html from scenario to repo
   const srcDir = getDefaultRepoDir(path.join("scenarioDefaults", scenarioNameId));
-  fs.copyFileSync(path.join(srcDir, "main.py"), path.join(dir, "main.py"));
+  fs.copyFileSync(path.join(srcDir, "index.html"), path.join(dir, "index.html"));
 
   // Add the file and create an initial commit
   await git.add({
-    fs, dir, filepath: "main.py"
+    fs, dir, filepath: "index.html"
   });
   await git.commit({
     fs, dir, message: "Initial commit", author: admin
@@ -59,11 +59,11 @@ async function getRepoStatus(req: Request, res: Response, next: NextFunction) {
 
   const { username } = req.params;
 
-  // For now, since we know that the only file we have is main.py, we can just check if it is modified or not.
+  // For now, since we know that the only file we have is index.html, we can just check if it is modified or not.
   const status = await git.status({
     fs,
     dir: getDefaultRepoDir(username),
-    filepath: "main.py",
+    filepath: "index.html",
   });
   res.json({ status });
 }
@@ -256,12 +256,12 @@ async function rebase(req: Request, res: Response, next: NextFunction) {
     const dir = getDefaultRepoDir(username);
 
     // because rebase is not supported, we will simply mimic what impact rebase has on the codebase.
-    fs.appendFileSync(path.join(dir, "main.py"), `\n    print("Line added from rebase.")\n`);
+    fs.appendFileSync(path.join(dir, "index.html"), `\n    print("Line added from rebase.")\n`);
 
     await git.add({
       fs,
       dir,
-      filepath: "main.py",
+      filepath: "index.html",
     });
     await commitAndRetrieveStats(dir, `Rebase from ${branch}`, admin);
 
