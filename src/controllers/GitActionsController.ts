@@ -29,6 +29,8 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
 
   const currentBranch = await git.currentBranch({ fs, dir });
   const branches = await git.listBranches({ fs, dir });
+  Logger.info(`current branch: ${currentBranch}`);
+  Logger.info(`branches: [${branches.join(", ")}]`);
   if (currentBranch !== "main" && branches.includes("main")) {
     await git.checkout({
       fs,
