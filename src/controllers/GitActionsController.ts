@@ -57,7 +57,7 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
   await git.commit({
     fs,
     dir,
-    message: `"Set up codebase for ${scenarioNameId}"`,
+    message: `Set up codebase for ${scenarioNameId}`,
     author: admin,
   });
 
