@@ -13,30 +13,47 @@ const admin = { name: "Admin", email: "hpar461@aucklanduni.ac.nz" };
 async function initRepo(req: Request, res: Response, next: NextFunction) {
   Logger.info("initRepo run");
 
-  const { username, scenarioNameId }: { username: string, scenarioNameId: string } = req.body;
+  const {
+    username,
+    scenarioNameId,
+  }: { username: string; scenarioNameId: string } = req.body;
 
   const dir = getDefaultRepoDir(username);
 
   // Initialise the repo.
   await git.init({
-    fs, dir, defaultBranch: "main",
+    fs,
+    dir,
+    defaultBranch: "main",
   });
 
-  // checkout to main
-  // await git.checkout({
-  //   fs, dir, ref: "main",
-  // });
-
   // copy index.html from scenario to repo
-  const srcDir = getDefaultRepoDir(path.join("scenarioDefaults", scenarioNameId));
-  fs.copyFileSync(path.join(srcDir, "index.html"), path.join(dir, "index.html"));
+  const srcDir = getDefaultRepoDir(
+    path.join("scenarioDefaults", scenarioNameId)
+  );
+  fs.copyFileSync(
+    path.join(srcDir, "index.html"),
+    path.join(dir, "index.html")
+  );
 
   // Add the file and create an initial commit
   await git.add({
-    fs, dir, filepath: "index.html"
+    fs,
+    dir,
+    filepath: "index.html",
   });
   await git.commit({
-    fs, dir, message: "Initial commit", author: admin
+    fs,
+    dir,
+    message: "Initial commit",
+    author: admin,
+  });
+
+  // checkout to main
+  await git.checkout({
+    fs,
+    dir,
+    ref: "main",
   });
 
   res.status(HTTPStatusCode.CREATED).json({ message: "init repo success" });
@@ -48,8 +65,8 @@ async function addRemote(req: Request, res: Response, next: NextFunction) {
     fs,
     dir: getDefaultRepoDir(username),
     gitdir: path.join(getDefaultRepoDir(username), ".git"),
-    remote: 'origin',
-    url: remoteUrl
+    remote: "origin",
+    url: remoteUrl,
   });
   res.status(HTTPStatusCode.NO_CONTENT).json({ message: "add remote success" });
 }
@@ -71,7 +88,8 @@ async function getRepoStatus(req: Request, res: Response, next: NextFunction) {
 async function stageFile(req: Request, res: Response, next: NextFunction) {
   Logger.info("stageFile run");
 
-  const { username, fileName }: { username: string; fileName: string } = req.body;
+  const { username, fileName }: { username: string; fileName: string } =
+    req.body;
 
   try {
     await git.add({
@@ -102,7 +120,9 @@ async function stageAllFiles(req: Request, res: Response, next: NextFunction) {
     res.sendStatus(HTTPStatusCode.NO_CONTENT);
   } catch (e) {
     Logger.error(e);
-    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "stage all files failed", error: e });
+    res
+      .status(HTTPStatusCode.INTERNAL_SERVER_ERROR)
+      .json({ message: "stage all files failed", error: e });
   }
 }
 
@@ -119,7 +139,7 @@ async function commit(req: Request, res: Response, next: NextFunction) {
     author: {
       name: string;
       email: string;
-    }
+    };
   } = req.body;
 
   try {
@@ -128,11 +148,17 @@ async function commit(req: Request, res: Response, next: NextFunction) {
     res.status(HTTPStatusCode.CREATED).json(result);
   } catch (e) {
     Logger.error(e);
-    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "commit failed" });
+    res
+      .status(HTTPStatusCode.INTERNAL_SERVER_ERROR)
+      .json({ message: "commit failed" });
   }
 }
 
-async function stageAllAndCommit(req: Request, res: Response, next: NextFunction) {
+async function stageAllAndCommit(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   Logger.info("stageAllAndCommit run");
 
   const {
@@ -145,7 +171,7 @@ async function stageAllAndCommit(req: Request, res: Response, next: NextFunction
     author: {
       name: string;
       email: string;
-    }
+    };
   } = req.body;
 
   try {
@@ -161,7 +187,9 @@ async function stageAllAndCommit(req: Request, res: Response, next: NextFunction
     res.status(HTTPStatusCode.CREATED).json(result);
   } catch (e) {
     Logger.error(e);
-    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: "stage and commit failed" });
+    res
+      .status(HTTPStatusCode.INTERNAL_SERVER_ERROR)
+      .json({ message: "stage and commit failed" });
   }
 }
 
@@ -172,8 +200,9 @@ async function push(req: Request, res: Response, next: NextFunction) {
     username,
     remote,
     branch,
-    accessToken
-  }: { username: string, remote: string, branch: string, accessToken: string } = req.body;
+    accessToken,
+  }: { username: string; remote: string; branch: string; accessToken: string } =
+    req.body;
 
   try {
     const dir = getDefaultRepoDir(username);
@@ -187,13 +216,17 @@ async function push(req: Request, res: Response, next: NextFunction) {
       onAuth: () => ({
         username: accessToken,
         password: "x-oauth-basic",
-      })
+      }),
     });
 
     res.sendStatus(HTTPStatusCode.NO_CONTENT);
   } catch (e: any) {
     Logger.error(e);
-    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: `push failed with error - ${e.data.statusMessage}: ${e.data.response}` });
+    res
+      .status(HTTPStatusCode.INTERNAL_SERVER_ERROR)
+      .json({
+        message: `push failed with error - ${e.data.statusMessage}: ${e.data.response}`,
+      });
   }
 }
 
@@ -223,10 +256,7 @@ async function branch(req: Request, res: Response, next: NextFunction) {
 async function checkout(req: Request, res: Response, next: NextFunction) {
   Logger.info("checkout run");
 
-  const {
-    username,
-    branch,
-  }: { username: string; branch: string } = req.body;
+  const { username, branch }: { username: string; branch: string } = req.body;
 
   try {
     const dir = getDefaultRepoDir(username);
@@ -247,16 +277,16 @@ async function checkout(req: Request, res: Response, next: NextFunction) {
 async function rebase(req: Request, res: Response, next: NextFunction) {
   Logger.info("rebase run");
 
-  const {
-    username,
-    branch,
-  }: { username: string; branch: string } = req.body;
+  const { username, branch }: { username: string; branch: string } = req.body;
 
   try {
     const dir = getDefaultRepoDir(username);
 
     // because rebase is not supported, we will simply mimic what impact rebase has on the codebase.
-    fs.appendFileSync(path.join(dir, "index.html"), `\n    print("Line added from rebase.")\n`);
+    fs.appendFileSync(
+      path.join(dir, "index.html"),
+      `\n    print("Line added from rebase.")\n`
+    );
 
     await git.add({
       fs,
@@ -268,7 +298,9 @@ async function rebase(req: Request, res: Response, next: NextFunction) {
     res.sendStatus(HTTPStatusCode.NO_CONTENT);
   } catch (e: any) {
     Logger.error(e);
-    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({ message: `Rebase failed: ${e.code} from ${e.caller}` });
+    res
+      .status(HTTPStatusCode.INTERNAL_SERVER_ERROR)
+      .json({ message: `Rebase failed: ${e.code} from ${e.caller}` });
   }
 }
 
@@ -283,7 +315,7 @@ async function currentBranch(req: Request, res: Response, next: NextFunction) {
     const currentBranch = await git.currentBranch({
       fs,
       dir,
-      fullname
+      fullname,
     });
 
     res.status(HTTPStatusCode.OK).send(currentBranch);
