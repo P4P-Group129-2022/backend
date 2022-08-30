@@ -27,36 +27,15 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
     defaultBranch: "main",
   });
 
-  console.log("files in repos dir:");
-  fs.readdirSync(path.join(process.cwd(), "repos")).forEach((file) => {
-    console.log(file);
-  });
-
-  console.log("branches in userDir");
+  const currentBranch = await git.currentBranch({ fs, dir });
   const branches = await git.listBranches({ fs, dir });
-  branches.forEach((branch) => console.log(branch));
-
-  // checkout to main
-  // try {
-  //   await git.checkout({
-  //     fs,
-  //     dir,
-  //     ref: "main",
-  //   });
-  // } catch (e: any) {
-  //   if (e.code === "NotFoundError") {
-  //     await git.branch({
-  //       fs,
-  //       dir,
-  //       ref: "main",
-  //     });
-  //     await git.checkout({
-  //       fs,
-  //       dir,
-  //       ref: "main",
-  //     });
-  //   }
-  // }
+  if (currentBranch !== "main" && branches.includes("main")) {
+    await git.checkout({
+      fs,
+      dir,
+      ref: "main",
+    });
+  }
 
   // copy index.html from scenario to repo
   const srcDir = getDefaultRepoDir(
