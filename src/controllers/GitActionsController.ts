@@ -27,6 +27,14 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
     defaultBranch: "main",
   });
 
+  // checkout to main
+  await git.checkout({
+    fs,
+    dir,
+    force: true,
+    ref: "main",
+  });
+
   // copy index.html from scenario to repo
   const srcDir = getDefaultRepoDir(
     path.join("scenarioDefaults", scenarioNameId)
@@ -47,13 +55,6 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
     dir,
     message: `"Set up codebase for ${scenarioNameId}"`,
     author: admin,
-  });
-
-  // checkout to main
-  await git.checkout({
-    fs,
-    dir,
-    ref: "main",
   });
 
   res.status(HTTPStatusCode.CREATED).json({ message: "init repo success" });
