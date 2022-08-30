@@ -45,7 +45,7 @@ async function initRepo(req: Request, res: Response, next: NextFunction) {
   await git.commit({
     fs,
     dir,
-    message: "Initial commit",
+    message: `"Set up codebase for ${scenarioNameId}"`,
     author: admin,
   });
 
@@ -222,11 +222,9 @@ async function push(req: Request, res: Response, next: NextFunction) {
     res.sendStatus(HTTPStatusCode.NO_CONTENT);
   } catch (e: any) {
     Logger.error(e);
-    res
-      .status(HTTPStatusCode.INTERNAL_SERVER_ERROR)
-      .json({
-        message: `push failed with error - ${e.data.statusMessage}: ${e.data.response}`,
-      });
+    res.status(HTTPStatusCode.INTERNAL_SERVER_ERROR).json({
+      message: `push failed with error - ${e.data.statusMessage}: ${e.data.response}`,
+    });
   }
 }
 
