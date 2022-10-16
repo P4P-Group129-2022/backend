@@ -22,25 +22,14 @@ The deployment of this application is here: https://p4p-project-lets-git-it-api.
 ### Installing
 
 * Clone the repository using your preferred method of repository cloning. 
-
   * Otherwise, type `https://github.com/P4P-Group129-2022/frontend.git` in a directory to store the project.
-
 * Go into the project directory.
-
   * `cd backend`
-
 * Download the required libraries by running `yarn` in the terminal.
+* Download and place the env file inside the project directory.
+  - Link to download the env file (requires a UoA Google account): [Link](https://drive.google.com/file/d/1xzuI89kQmetFDGoLV7LPahqrPkjZPDj6/view?usp=sharing)
 
-* Create an env file named `.env` in the project directory and paste the following lines into the file.
 
-  * ```
-    MONGO_USERNAME="letsgitit"
-    MONGO_PASSWORD="letsgitit"
-    SERVER_PORT="8080"
-    ORGANIZATION_OWNER_PAT="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"
-    ```
-
-    
 
 ### Executing program
 
