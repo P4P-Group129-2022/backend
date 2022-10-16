@@ -33,7 +33,7 @@ The deployment of this application is here: https://p4p-project-lets-git-it-api.
 
 ### Executing program
 
-Run `yarn start` to run the application.
+Run `yarn dev` to run the application.
 
 
 
